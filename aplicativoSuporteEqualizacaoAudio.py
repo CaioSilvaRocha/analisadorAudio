@@ -21,7 +21,8 @@ duracaoMaximaSegundosCarregamentoAudio = 5
 duracaoMinimaSegundosSerieTemporalAudio = 1
 frequenciaMaximaAudivel = 20000 
 frequenciaMinimaAudivel = 20 
-frequenciasDestaqueGraficoLinhasVerticais = [20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000] # Definido arbitrariamente
+frequenciasDestaqueEscalaLinearGraficoLinhasVerticais = [20, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000] # Definido arbitrariamente
+frequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais = [20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000] # Definido arbitrariamente
 funcaoAgregacaoCanais = None 
 inicioSegundosCarregamentoAudio = 0.0 
 limiteAbaixoReferenciaConsideradoSilencio = 1e-12 
@@ -31,23 +32,29 @@ modoPreenchimento = None
 taxaAmostragem = None 
 tipoMatrizSaida = float32 
 tipoReamostragem = "soxr_hq" 
-textosFrequenciasDestaqueGraficoLinhasVerticais = [20, 30, 40, 50, 60, 70, 80, 90, "1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "1K", "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K", "10K", "15K", "20K"] # Definido arbitrariamente
+textosFrequenciasDestaqueEscalaLinearGraficoLinhasVerticais = [20, "1K", "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K", "10K", "15K", "20K"] # Definido arbitrariamente
+textosFrequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais = [20, 30, 40, 50, 60, 70, 80, 90, "1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "1K", "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K", "10K", "15K", "20K"] # Definido arbitrariamente
 
 # FUNÇÕES AUXILIARES
 
-def exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisSerieTemporal, listaDecibeisUteisSerieTemporal, escalaEixoDecibeis, escalaEixoFrequencias):
+def exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisSerieTemporal, listaDecibeisUteisSerieTemporal, escalaEixoFrequencias):
 
     graficoFrequenciasDecibeisUteisSerieTemporalAudio = figure(figsize=(20,7))
 
     ylabel(ylabel="Decibéis")
     ylim(0, decibelMaximoEixoYGrafico)
-    yscale(escalaEixoDecibeis)
-    yticks(ticks=arange(start=0, stop=decibelMaximoEixoYGrafico, step=5),
-        labels=arange(start=0, stop=decibelMaximoEixoYGrafico, step=5))
+    yscale("linear")
+    yticks(ticks=arange(start=0, stop=decibelMaximoEixoYGrafico, step=5), labels=arange(start=0, stop=decibelMaximoEixoYGrafico, step=5))
     xlabel(xlabel="Frequências")
-    xlim((frequenciaMinimaAudivel-1), (frequenciaMaximaAudivel+1000))
     xscale(value=escalaEixoFrequencias)
-    xticks(ticks=frequenciasDestaqueGraficoLinhasVerticais, labels=textosFrequenciasDestaqueGraficoLinhasVerticais, rotation=45)
+
+    if(escalaEixoFrequencias == "linear"):
+        xticks(ticks=frequenciasDestaqueEscalaLinearGraficoLinhasVerticais, labels=textosFrequenciasDestaqueEscalaLinearGraficoLinhasVerticais, rotation=45)
+        xlim((frequenciaMinimaAudivel-100), (frequenciaMaximaAudivel+100))
+    else:
+        xticks(ticks=frequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais, labels=textosFrequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais, rotation=45)
+        xlim((frequenciaMinimaAudivel-1), (frequenciaMaximaAudivel+1000))
+
     vlines(x=listaFrequenciasUteisSerieTemporal, ymin=0, ymax=listaDecibeisUteisSerieTemporal, colors="mediumblue", linestyles="solid", linewidths=1)
     grid(axis="y")
     
@@ -55,19 +62,24 @@ def exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUtei
 
 def exibirGraficosSobrepostosFrequenciasDecibeisUteisSeriesTemporaisAudios(listaFrequenciasUteisSerieTemporalAudioOriginal, listaDecibeisUteisSerieTemporalAudioOriginal,
                                                                            listaFrequenciasUteisSerieTemporalAudioFinal, listaDecibeisUteisSerieTemporalAudioFinal,
-                                                                           escalaEixoDecibeis, escalaEixoFrequencias):
+                                                                           escalaEixoFrequencias):
 
     graficosSobrepostos = figure(figsize=(20,3.5))
 
     ylabel(ylabel="Decibéis")
     ylim(0, decibelMaximoEixoYGrafico)
-    yscale(escalaEixoDecibeis)
-    yticks(ticks=arange(start=0, stop=decibelMaximoEixoYGrafico, step=5),
-        labels=arange(start=0, stop=decibelMaximoEixoYGrafico, step=5))
+    yscale("linear")
+    yticks(ticks=arange(start=0, stop=decibelMaximoEixoYGrafico, step=5), labels=arange(start=0, stop=decibelMaximoEixoYGrafico, step=5))
     xlabel(xlabel="Frequências")
-    xlim((frequenciaMinimaAudivel-1), (frequenciaMaximaAudivel+1000))
     xscale(value=escalaEixoFrequencias)
-    xticks(ticks=frequenciasDestaqueGraficoLinhasVerticais, labels=textosFrequenciasDestaqueGraficoLinhasVerticais, rotation=45)
+
+    if(escalaEixoFrequencias == "linear"):
+        xticks(ticks=frequenciasDestaqueEscalaLinearGraficoLinhasVerticais, labels=textosFrequenciasDestaqueEscalaLinearGraficoLinhasVerticais, rotation=45)
+        xlim((frequenciaMinimaAudivel-100), (frequenciaMaximaAudivel+100))
+    else:
+        xticks(ticks=frequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais, labels=textosFrequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais, rotation=45)
+        xlim((frequenciaMinimaAudivel-1), (frequenciaMaximaAudivel+1000))
+
     grid(axis="y")
     vlines(x=listaFrequenciasUteisSerieTemporalAudioOriginal, ymin=0, ymax=listaDecibeisUteisSerieTemporalAudioOriginal, colors="gray", linestyles="solid", label="Áudio Original", linewidths=1)
     vlines(x=listaFrequenciasUteisSerieTemporalAudioFinal, ymin=0, ymax=listaDecibeisUteisSerieTemporalAudioFinal, colors="mediumblue", linestyles="solid", label="Áudio Final", linewidths=1)
@@ -197,7 +209,6 @@ if __name__ == '__main__':
         escolhaPorcentagemSaltoSTFT = selectbox("Porcentagem do Salto STFT:", [0.25, 0.50, 0.75], 0, placeholder="Escolha uma opção")
         
         escolhaEscalaEixoFrequencias = radio("Escala do Eixo de Frequências:", ["linear", "logaritmica"], 1, horizontal=True)
-        escolhaEscalaEixoDecibeis = radio("Escala do Eixo de Decibéis:", ["linear", "logaritmica"], 0, horizontal=True)
 
     dicionarioTiposJanelasSTFT = {
         "Bartlett": "bartlett", 
@@ -351,17 +362,17 @@ if __name__ == '__main__':
 
             with coluna1ExibicaoGrafico:
                 with spinner(text="Carregando gráfico..."):
-                    exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioOriginal, dicionarioEscalasEixos[escolhaEscalaEixoDecibeis], dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
+                    exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioOriginal, dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
 
             with coluna2ExibicaoGrafico:
                 with spinner(text="Carregando gráfico..."):
-                    exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisArredondadasSerieTemporalAudioFinal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal, dicionarioEscalasEixos[escolhaEscalaEixoDecibeis], dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
+                    exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisArredondadasSerieTemporalAudioFinal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal, dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
 
         with abaExibicaoGraficosSobrepostos:
             with spinner(text="Carregando gráfico..."):
                 exibirGraficosSobrepostosFrequenciasDecibeisUteisSeriesTemporaisAudios(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioOriginal,
                                                                                         listaFrequenciasUteisArredondadasSerieTemporalAudioFinal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal,
-                                                                                        dicionarioEscalasEixos[escolhaEscalaEixoDecibeis], dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
+                                                                                        dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
 
         listaFrequenciasComuns = list(set(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal) & set(listaFrequenciasUteisArredondadasSerieTemporalAudioFinal))
 
