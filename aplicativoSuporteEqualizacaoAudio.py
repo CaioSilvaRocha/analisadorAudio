@@ -21,7 +21,7 @@ duracaoMaximaSegundosCarregamentoAudio = 5
 duracaoMinimaSegundosSerieTemporalAudio = 1
 frequenciaMaximaAudivel = 20000 
 frequenciaMinimaAudivel = 20 
-frequenciasDestaqueEscalaLinearGraficoLinhasVerticais = [20, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000] # Definido arbitrariamente
+frequenciasDestaqueEscalaLinearGraficoLinhasVerticais = [20, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000, 20000] # Definido arbitrariamente
 frequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais = [20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000] # Definido arbitrariamente
 funcaoAgregacaoCanais = None 
 inicioSegundosCarregamentoAudio = 0.0 
@@ -32,7 +32,7 @@ modoPreenchimento = None
 taxaAmostragem = None 
 tipoMatrizSaida = float32 
 tipoReamostragem = "soxr_hq" 
-textosFrequenciasDestaqueEscalaLinearGraficoLinhasVerticais = [20, "1K", "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K", "10K", "15K", "20K"] # Definido arbitrariamente
+textosFrequenciasDestaqueEscalaLinearGraficoLinhasVerticais = [20, "1K", "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K", "10K", "11K", "12K", "13K", "14K", "15K", "16K", "17K", "18K", "19K", "20K"] # Definido arbitrariamente
 textosFrequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais = [20, 30, 40, 50, 60, 70, 80, 90, "1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "1K", "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K", "10K", "15K", "20K"] # Definido arbitrariamente
 
 # FUNÇÕES AUXILIARES
