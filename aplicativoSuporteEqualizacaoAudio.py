@@ -208,7 +208,7 @@ if __name__ == '__main__':
         escolhaTamanhoJanelaSTFT = selectbox("Tamanho da Janela STFT:", [1024, 2048, 4096, 8192, 16384, 32768], 5, placeholder="Escolha uma opção")
         escolhaPorcentagemSaltoSTFT = selectbox("Porcentagem do Salto STFT:", [0.25, 0.50, 0.75], 0, placeholder="Escolha uma opção")
         
-        escolhaEscalaEixoFrequencias = radio("Escala do Eixo de Frequências:", ["linear", "logaritmica"], 1, horizontal=True)
+        escolhaEscalaEixoFrequencias = radio("Escala do Eixo de Frequências:", ["linear", "logaritmica"], 0, horizontal=True)
 
     dicionarioTiposJanelasSTFT = {
         "Bartlett": "bartlett", 
