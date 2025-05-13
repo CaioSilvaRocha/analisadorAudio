@@ -300,127 +300,139 @@ if __name__ == '__main__':
 
             stop()
 
-        # Limitação de duração máxima das séries temporais dos áudios original e final
-        if(duracaoSegundosSerieTemporalAudioOriginal > escolhaTempoMaximoAnaliseAudio):
-            serieTemporalAudioOriginal = serieTemporalAudioOriginal[0:(taxaAmostragemAudioOriginal * escolhaTempoMaximoAnaliseAudio)]
+        try:
+            # Limitação de duração máxima das séries temporais dos áudios original e final
+            if(duracaoSegundosSerieTemporalAudioOriginal > escolhaTempoMaximoAnaliseAudio):
+                serieTemporalAudioOriginal = serieTemporalAudioOriginal[0:(taxaAmostragemAudioOriginal * escolhaTempoMaximoAnaliseAudio)]
 
-        if(duracaoSegundosSerieTemporalAudioFinal > escolhaTempoMaximoAnaliseAudio):
-            serieTemporalAudioFinal = serieTemporalAudioFinal[0:(taxaAmostragemAudioFinal * escolhaTempoMaximoAnaliseAudio)]            
+            if(duracaoSegundosSerieTemporalAudioFinal > escolhaTempoMaximoAnaliseAudio):
+                serieTemporalAudioFinal = serieTemporalAudioFinal[0:(taxaAmostragemAudioFinal * escolhaTempoMaximoAnaliseAudio)]            
 
-        # Obtenção de frequências instantâneas e respectivas amplitudes das séries temporais dos áudios original e final
-        frequenciasInstantaneasSerieTemporalAudioOriginal, amplitudesFrequenciasInstantaneasSerieTemporalAudioOriginal = obterFrequenciasAmplitudesSerieTemporalAudio(serieTemporalAudioOriginal,
-                                                                                                                                                                    taxaAmostragemAudioOriginal,
+            # Obtenção de frequências instantâneas e respectivas amplitudes das séries temporais dos áudios original e final
+            frequenciasInstantaneasSerieTemporalAudioOriginal, amplitudesFrequenciasInstantaneasSerieTemporalAudioOriginal = obterFrequenciasAmplitudesSerieTemporalAudio(serieTemporalAudioOriginal,
+                                                                                                                                                                        taxaAmostragemAudioOriginal,
+                                                                                                                                                                        escolhaTamanhoJanelaSTFT,
+                                                                                                                                                                        dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT],
+                                                                                                                                                                        dicionarioTiposJanelasSTFT[escolhaTipoJanelaSTFT],
+                                                                                                                                                                        rmsQuadrosSerieTemporalAudioOriginal.min())
+            
+            frequenciasInstantaneasSerieTemporalAudioFinal, amplitudesFrequenciasInstantaneasSerieTemporalAudioFinal = obterFrequenciasAmplitudesSerieTemporalAudio(serieTemporalAudioFinal,
+                                                                                                                                                                    taxaAmostragemAudioFinal,
                                                                                                                                                                     escolhaTamanhoJanelaSTFT,
                                                                                                                                                                     dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT],
                                                                                                                                                                     dicionarioTiposJanelasSTFT[escolhaTipoJanelaSTFT],
-                                                                                                                                                                    rmsQuadrosSerieTemporalAudioOriginal.min())
-        
-        frequenciasInstantaneasSerieTemporalAudioFinal, amplitudesFrequenciasInstantaneasSerieTemporalAudioFinal = obterFrequenciasAmplitudesSerieTemporalAudio(serieTemporalAudioFinal,
-                                                                                                                                                                taxaAmostragemAudioFinal,
-                                                                                                                                                                escolhaTamanhoJanelaSTFT,
-                                                                                                                                                                dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT],
-                                                                                                                                                                dicionarioTiposJanelasSTFT[escolhaTipoJanelaSTFT],
-                                                                                                                                                                rmsQuadrosSerieTemporalAudioFinal.min())
+                                                                                                                                                                    rmsQuadrosSerieTemporalAudioFinal.min())
 
-        # Filtragem de frequências e amplitudes úteis das séries temporais dos áudios original e final
-        posicoesLinhasNaoNulasSerieTemporalAudioOriginal, posicoesColunasNaoNulasSerieTemporalAudioOriginal = frequenciasInstantaneasSerieTemporalAudioOriginal.nonzero()
-        posicoesLinhasNaoNulasSerieTemporalAudioFinal, posicoesColunasNaoNulasSerieTemporalAudioFinal = frequenciasInstantaneasSerieTemporalAudioFinal.nonzero()
+            # Filtragem de frequências e amplitudes úteis das séries temporais dos áudios original e final
+            posicoesLinhasNaoNulasSerieTemporalAudioOriginal, posicoesColunasNaoNulasSerieTemporalAudioOriginal = frequenciasInstantaneasSerieTemporalAudioOriginal.nonzero()
+            posicoesLinhasNaoNulasSerieTemporalAudioFinal, posicoesColunasNaoNulasSerieTemporalAudioFinal = frequenciasInstantaneasSerieTemporalAudioFinal.nonzero()
 
-        listaFrequenciasUteisSerieTemporalAudioOriginal, listaAmplitudesUteisSerieTemporalAudioOriginal = filtrarFrequenciasAmplitudesUteisSerieTemporalAudio(frequenciasInstantaneasSerieTemporalAudioOriginal,
-                                                                                                                                                            amplitudesFrequenciasInstantaneasSerieTemporalAudioOriginal,
-                                                                                                                                                            posicoesLinhasNaoNulasSerieTemporalAudioOriginal,
-                                                                                                                                                            posicoesColunasNaoNulasSerieTemporalAudioOriginal)
-        
-        listaFrequenciasUteisSerieTemporalAudioFinal, listaAmplitudesUteisSerieTemporalAudioFinal = filtrarFrequenciasAmplitudesUteisSerieTemporalAudio(frequenciasInstantaneasSerieTemporalAudioFinal,
-                                                                                                                                                        amplitudesFrequenciasInstantaneasSerieTemporalAudioFinal,
-                                                                                                                                                        posicoesLinhasNaoNulasSerieTemporalAudioFinal,
-                                                                                                                                                        posicoesColunasNaoNulasSerieTemporalAudioFinal)
+            listaFrequenciasUteisSerieTemporalAudioOriginal, listaAmplitudesUteisSerieTemporalAudioOriginal = filtrarFrequenciasAmplitudesUteisSerieTemporalAudio(frequenciasInstantaneasSerieTemporalAudioOriginal,
+                                                                                                                                                                amplitudesFrequenciasInstantaneasSerieTemporalAudioOriginal,
+                                                                                                                                                                posicoesLinhasNaoNulasSerieTemporalAudioOriginal,
+                                                                                                                                                                posicoesColunasNaoNulasSerieTemporalAudioOriginal)
+            
+            listaFrequenciasUteisSerieTemporalAudioFinal, listaAmplitudesUteisSerieTemporalAudioFinal = filtrarFrequenciasAmplitudesUteisSerieTemporalAudio(frequenciasInstantaneasSerieTemporalAudioFinal,
+                                                                                                                                                            amplitudesFrequenciasInstantaneasSerieTemporalAudioFinal,
+                                                                                                                                                            posicoesLinhasNaoNulasSerieTemporalAudioFinal,
+                                                                                                                                                            posicoesColunasNaoNulasSerieTemporalAudioFinal)
 
-        # Arredondamento e conversão em inteiro das frequências úteis das séries temporais dos áudios original e final
-        listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal = [int(round(frequencia, 0)) for frequencia in listaFrequenciasUteisSerieTemporalAudioOriginal]
-        listaFrequenciasUteisArredondadasSerieTemporalAudioFinal = [int(round(frequencia, 0)) for frequencia in listaFrequenciasUteisSerieTemporalAudioFinal]
+            # Arredondamento e conversão em inteiro das frequências úteis das séries temporais dos áudios original e final
+            listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal = [int(round(frequencia, 0)) for frequencia in listaFrequenciasUteisSerieTemporalAudioOriginal]
+            listaFrequenciasUteisArredondadasSerieTemporalAudioFinal = [int(round(frequencia, 0)) for frequencia in listaFrequenciasUteisSerieTemporalAudioFinal]
 
-        # Conversão, em decibéis, de amplitudes úteis de frequências instantâneas das séries temporais dos áudios original e final
-        listaDecibeisUteisSerieTemporalAudioOriginal = amplitudeToDb(S=listaAmplitudesUteisSerieTemporalAudioOriginal, ref=limiteAbaixoReferenciaConsideradoSilencio, amin=limiteMinimoObtencaoDadosFrequencias, top_db=limiteDecibeisAbaixoPico).tolist()
-        listaDecibeisUteisSerieTemporalAudioFinal = amplitudeToDb(S=listaAmplitudesUteisSerieTemporalAudioFinal, ref=limiteAbaixoReferenciaConsideradoSilencio, amin=limiteMinimoObtencaoDadosFrequencias, top_db=limiteDecibeisAbaixoPico).tolist()
+            # Conversão, em decibéis, de amplitudes úteis de frequências instantâneas das séries temporais dos áudios original e final
+            listaDecibeisUteisSerieTemporalAudioOriginal = amplitudeToDb(S=listaAmplitudesUteisSerieTemporalAudioOriginal, ref=limiteAbaixoReferenciaConsideradoSilencio, amin=limiteMinimoObtencaoDadosFrequencias, top_db=limiteDecibeisAbaixoPico).tolist()
+            listaDecibeisUteisSerieTemporalAudioFinal = amplitudeToDb(S=listaAmplitudesUteisSerieTemporalAudioFinal, ref=limiteAbaixoReferenciaConsideradoSilencio, amin=limiteMinimoObtencaoDadosFrequencias, top_db=limiteDecibeisAbaixoPico).tolist()
 
-        # Arredondamento e conversão em inteiro dos decibéis das frequências úteis das séries temporais dos áudios original e final
-        listaDecibeisUteisArredondadosSerieTemporalAudioOriginal = [int(round(decibel, 0)) for decibel in listaDecibeisUteisSerieTemporalAudioOriginal]
-        listaDecibeisUteisArredondadosSerieTemporalAudioFinal = [int(round(decibel, 0)) for decibel in listaDecibeisUteisSerieTemporalAudioFinal]
+            # Arredondamento e conversão em inteiro dos decibéis das frequências úteis das séries temporais dos áudios original e final
+            listaDecibeisUteisArredondadosSerieTemporalAudioOriginal = [int(round(decibel, 0)) for decibel in listaDecibeisUteisSerieTemporalAudioOriginal]
+            listaDecibeisUteisArredondadosSerieTemporalAudioFinal = [int(round(decibel, 0)) for decibel in listaDecibeisUteisSerieTemporalAudioFinal]
 
-        # Obtenção do maior decibel útel entre as listas de decibéis das séries temporais dos áudios original e final
-        decibelMaximoSerieTemporalOriginal = max(listaDecibeisUteisArredondadosSerieTemporalAudioOriginal)
-        decibelMaximoSerieTemporalFinal = max(listaDecibeisUteisArredondadosSerieTemporalAudioFinal) 
+            # Obtenção do maior decibel útel entre as listas de decibéis das séries temporais dos áudios original e final
+            decibelMaximoSerieTemporalOriginal = max(listaDecibeisUteisArredondadosSerieTemporalAudioOriginal)
+            decibelMaximoSerieTemporalFinal = max(listaDecibeisUteisArredondadosSerieTemporalAudioFinal) 
 
-        decibelMaximoEixoYGrafico = (max([decibelMaximoSerieTemporalOriginal, decibelMaximoSerieTemporalFinal]) + 5)
+            decibelMaximoEixoYGrafico = (max([decibelMaximoSerieTemporalOriginal, decibelMaximoSerieTemporalFinal]) + 5)
 
-        # Exibição de gráficos (sobrepostos e separados) de linhas verticais contendo frequências e decibéis úteis das séries temporais dos áudios original e final
-        abaExibicaoGraficosSeparados, abaExibicaoGraficosSobrepostos = tabs(tabs=["GRÁFICOS SEPARADOS", "GRÁFICOS SOBREPOSTOS"])
+            # Exibição de gráficos (sobrepostos e separados) de linhas verticais contendo frequências e decibéis úteis das séries temporais dos áudios original e final
+            abaExibicaoGraficosSeparados, abaExibicaoGraficosSobrepostos = tabs(tabs=["GRÁFICOS SEPARADOS", "GRÁFICOS SOBREPOSTOS"])
 
-        with abaExibicaoGraficosSeparados:
-            coluna1ExibicaoGrafico, coluna2ExibicaoGrafico = columns(spec=2, gap="large")
+            with abaExibicaoGraficosSeparados:
+                coluna1ExibicaoGrafico, coluna2ExibicaoGrafico = columns(spec=2, gap="large")
 
-            with coluna1ExibicaoGrafico:
+                with coluna1ExibicaoGrafico:
+                    with spinner(text="Carregando gráfico..."):
+                        exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioOriginal, dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
+
+                with coluna2ExibicaoGrafico:
+                    with spinner(text="Carregando gráfico..."):
+                        exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisArredondadasSerieTemporalAudioFinal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal, dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
+
+            with abaExibicaoGraficosSobrepostos:
                 with spinner(text="Carregando gráfico..."):
-                    exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioOriginal, dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
+                    exibirGraficosSobrepostosFrequenciasDecibeisUteisSeriesTemporaisAudios(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioOriginal,
+                                                                                            listaFrequenciasUteisArredondadasSerieTemporalAudioFinal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal,
+                                                                                            dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
 
-            with coluna2ExibicaoGrafico:
-                with spinner(text="Carregando gráfico..."):
-                    exibirGraficoFrequenciasDecibeisUteisSerieTemporalAudio(listaFrequenciasUteisArredondadasSerieTemporalAudioFinal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal, dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
+            listaFrequenciasComuns = list(set(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal) & set(listaFrequenciasUteisArredondadasSerieTemporalAudioFinal))
 
-        with abaExibicaoGraficosSobrepostos:
-            with spinner(text="Carregando gráfico..."):
-                exibirGraficosSobrepostosFrequenciasDecibeisUteisSeriesTemporaisAudios(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioOriginal,
-                                                                                        listaFrequenciasUteisArredondadasSerieTemporalAudioFinal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal,
-                                                                                        dicionarioEscalasEixos[escolhaEscalaEixoFrequencias])
+            # Verificação da necessidade de aumento ou diminuição de volume
+            menorDiferencaDecibeis = 0
 
-        listaFrequenciasComuns = list(set(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal) & set(listaFrequenciasUteisArredondadasSerieTemporalAudioFinal))
+            if(len(listaFrequenciasComuns) == 0):
+                with container(height=None, border=False):
+                    with spinner(text="Carregando campo..."):
+                        markdown("**AJUSTE DE VOLUME:** Manter")
 
-        # Verificação da necessidade de aumento ou diminuição de volume
-        if(max(listaDecibeisUteisArredondadosSerieTemporalAudioOriginal) > max(listaDecibeisUteisArredondadosSerieTemporalAudioFinal)):
-            menorDiferencaDecibeis = max(listaDecibeisUteisArredondadosSerieTemporalAudioOriginal)
+            elif(max(listaDecibeisUteisArredondadosSerieTemporalAudioOriginal) > max(listaDecibeisUteisArredondadosSerieTemporalAudioFinal)):
+                menorDiferencaDecibeis = max(listaDecibeisUteisArredondadosSerieTemporalAudioOriginal)
 
-            for frequencia in listaFrequenciasComuns:
-                posicaoFrequenciaOriginal = listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal.index(frequencia)
-                posicaoFrequenciaFinal = listaFrequenciasUteisArredondadasSerieTemporalAudioFinal.index(frequencia)
+                for frequencia in listaFrequenciasComuns:
+                    posicaoFrequenciaOriginal = listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal.index(frequencia)
+                    posicaoFrequenciaFinal = listaFrequenciasUteisArredondadasSerieTemporalAudioFinal.index(frequencia)
 
-                if((listaDecibeisUteisArredondadosSerieTemporalAudioOriginal[posicaoFrequenciaOriginal] - listaDecibeisUteisArredondadosSerieTemporalAudioFinal[posicaoFrequenciaFinal]) < menorDiferencaDecibeis):
-                    menorDiferencaDecibeis = (listaDecibeisUteisArredondadosSerieTemporalAudioOriginal[posicaoFrequenciaOriginal] - listaDecibeisUteisArredondadosSerieTemporalAudioFinal[posicaoFrequenciaFinal])
+                    if((listaDecibeisUteisArredondadosSerieTemporalAudioOriginal[posicaoFrequenciaOriginal] - listaDecibeisUteisArredondadosSerieTemporalAudioFinal[posicaoFrequenciaFinal]) < menorDiferencaDecibeis):
+                        menorDiferencaDecibeis = (listaDecibeisUteisArredondadosSerieTemporalAudioOriginal[posicaoFrequenciaOriginal] - listaDecibeisUteisArredondadosSerieTemporalAudioFinal[posicaoFrequenciaFinal])
 
-                    if(menorDiferencaDecibeis <= 0):
-                        break
+                        if(menorDiferencaDecibeis <= 0):
+                            break
 
+                with container(height=None, border=False):
+                    with spinner(text="Carregando campo..."):
+                        if(menorDiferencaDecibeis <= 0):
+                            markdown("**AJUSTE DE VOLUME:** Manter")
+                        else:
+                            markdown(f"**AJUSTE DE VOLUME:** Aumentar {str(menorDiferencaDecibeis)} decibéis")
+
+            else:
+                menorDiferencaDecibeis = max(listaDecibeisUteisArredondadosSerieTemporalAudioFinal)
+
+                for frequencia in listaFrequenciasComuns:
+                    posicaoFrequenciaFinal = listaFrequenciasUteisArredondadasSerieTemporalAudioFinal.index(frequencia)
+                    posicaoFrequenciaOriginal = listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal.index(frequencia)
+
+                    if((listaDecibeisUteisArredondadosSerieTemporalAudioFinal[posicaoFrequenciaFinal] - listaDecibeisUteisArredondadosSerieTemporalAudioOriginal[posicaoFrequenciaOriginal]) < menorDiferencaDecibeis):
+                        menorDiferencaDecibeis = (listaDecibeisUteisArredondadosSerieTemporalAudioFinal[posicaoFrequenciaFinal] - listaDecibeisUteisArredondadosSerieTemporalAudioOriginal[posicaoFrequenciaOriginal])
+
+                        if(menorDiferencaDecibeis <= 0):
+                            break
+
+                with container(height=None, border=False):
+                    with spinner(text="Carregando campo..."):
+                        if(menorDiferencaDecibeis <= 0):
+                            markdown("**AJUSTE DE VOLUME:** Manter")
+                        else:
+                            markdown(f"**AJUSTE DE VOLUME:** Diminuir {str(menorDiferencaDecibeis)} decibéis")
+
+            # Obtenção de frequências específicas selecionadas para exibição de respectivos decibéis
             with container(height=None, border=False):
                 with spinner(text="Carregando campo..."):
-                    if(menorDiferencaDecibeis <= 0):
-                        markdown("**AJUSTE DE VOLUME:** Manter")
-                    else:
-                        markdown(f"**AJUSTE DE VOLUME:** Aumentar {str(menorDiferencaDecibeis)} decibéis")
+                    markdown("**ESCOLHA DE FREQUÊNCIAS PARA AJUSTE DE DECIBÉIS:**")
+                    obterFrequenciasEspecificasSelecionadasExibicaoDecibeis(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaFrequenciasUteisArredondadasSerieTemporalAudioFinal,
+                                                                            listaDecibeisUteisArredondadosSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal,
+                                                                            listaFrequenciasComuns, menorDiferencaDecibeis if menorDiferencaDecibeis > 0 else 0)
+        except:
+            error("ERRO: TENTE NOVAMENTE COM NOVOS PARÂMETROS!\n", icon=None)
 
-        else:
-            menorDiferencaDecibeis = max(listaDecibeisUteisArredondadosSerieTemporalAudioFinal)
-
-            for frequencia in listaFrequenciasComuns:
-                posicaoFrequenciaFinal = listaFrequenciasUteisArredondadasSerieTemporalAudioFinal.index(frequencia)
-                posicaoFrequenciaOriginal = listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal.index(frequencia)
-
-                if((listaDecibeisUteisArredondadosSerieTemporalAudioFinal[posicaoFrequenciaFinal] - listaDecibeisUteisArredondadosSerieTemporalAudioOriginal[posicaoFrequenciaOriginal]) < menorDiferencaDecibeis):
-                    menorDiferencaDecibeis = (listaDecibeisUteisArredondadosSerieTemporalAudioFinal[posicaoFrequenciaFinal] - listaDecibeisUteisArredondadosSerieTemporalAudioOriginal[posicaoFrequenciaOriginal])
-
-                    if(menorDiferencaDecibeis <= 0):
-                        break
-
-            with container(height=None, border=False):
-                with spinner(text="Carregando campo..."):
-                    if(menorDiferencaDecibeis <= 0):
-                        markdown("**AJUSTE DE VOLUME:** Manter")
-                    else:
-                        markdown(f"**AJUSTE DE VOLUME:** Diminuir {str(menorDiferencaDecibeis)} decibéis")
-
-        # Obtenção de frequências específicas selecionadas para exibição de respectivos decibéis
-        with container(height=None, border=False):
-            with spinner(text="Carregando campo..."):
-                markdown("**ESCOLHA DE FREQUÊNCIAS PARA AJUSTE DE DECIBÉIS:**")
-                obterFrequenciasEspecificasSelecionadasExibicaoDecibeis(listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal, listaFrequenciasUteisArredondadasSerieTemporalAudioFinal,
-                                                                        listaDecibeisUteisArredondadosSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal,
-                                                                        listaFrequenciasComuns, menorDiferencaDecibeis)
+            stop()
