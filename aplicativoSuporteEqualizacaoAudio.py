@@ -1,10 +1,9 @@
 # IMPORTAÇÕES 
 
 from librosa import amplitude_to_db as amplitudeToDb, load, piptrack
-from librosa.effects import trim
 from librosa.feature import rms
 from matplotlib.pyplot import figure, grid, legend, title, vlines, xlabel, xlim, xscale, xticks, ylabel, ylim, yscale, yticks
-from numpy import arange, float32, max, round
+from numpy import arange, float32, max, min, round
 from pandas import DataFrame
 from streamlit import columns, container, dataframe, error, fragment, file_uploader as fileUploader, markdown, multiselect, pyplot, radio, selectbox, set_page_config as setPageConfig, sidebar, slider, spinner, stop, tabs, title
 
@@ -17,8 +16,8 @@ setPageConfig(page_title=None, page_icon=None, layout="wide", initial_sidebar_st
 centralizacaoQuadro = False 
 conversaoMono = True 
 decibelMaximoEixoYGrafico = 0 
-duracaoMaximaSegundosCarregamentoAudio = 5 
-duracaoMinimaSegundosSerieTemporalAudio = 1
+duracaoMaximaSegundosCarregamentoAudio = None
+escolhaTamanhoJanelaSTFT = 1024
 frequenciaMaximaAudivel = 20000 
 frequenciaMinimaAudivel = 20 
 frequenciasDestaqueEscalaLinearGraficoLinhasVerticais = [20, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000, 20000] # Definido arbitrariamente
@@ -26,10 +25,13 @@ frequenciasDestaqueEscalaLogaritmicaGraficoLinhasVerticais = [20, 30, 40, 50, 60
 funcaoAgregacaoCanais = None 
 inicioSegundosCarregamentoAudio = 0.0 
 limiteAbaixoReferenciaConsideradoSilencio = 1e-12 
+limiteAbaixoRmsConsideradoSilencio = 1e-03
 limiteDecibeisAbaixoPico = 130.0 
-limiteMinimoObtencaoDadosFrequencias = 1e-01 
+limiteMinimoObtencaoDadosFrequencias = 1e-01
+listaTamanhosJanelaSTFT = [1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576]
 modoPreenchimento = None 
-taxaAmostragem = None 
+taxaAmostragem = None
+tipoJanelaSTFT = "hann"
 tipoMatrizSaida = float32 
 tipoReamostragem = "soxr_hq" 
 textosFrequenciasDestaqueEscalaLinearGraficoLinhasVerticais = [20, "1K", "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K", "10K", "11K", "12K", "13K", "14K", "15K", "16K", "17K", "18K", "19K", "20K"] # Definido arbitrariamente
@@ -107,12 +109,12 @@ def importarAudio(chaveExclusiva):
 
     return audio
 
-def obterFrequenciasAmplitudesSerieTemporalAudio(serieTemporalAudio, taxaAmostragemAudio, tamanhoJanelaSTFT, tamanhoSaltoSTFT, tipoJanelaSTFT, amplitudeReferencia):
+def obterFrequenciasAmplitudesSerieTemporalAudio(serieTemporalAudio, taxaAmostragemAudio, tamanhoJanelaSTFT, amplitudeReferencia):
     
     frequenciasInstantaneas, amplitudesFrequenciasInstantaneas = piptrack(y=serieTemporalAudio, sr=taxaAmostragemAudio, S=None, n_fft=tamanhoJanelaSTFT, 
-                                                                          hop_length=tamanhoSaltoSTFT, fmin=frequenciaMinimaAudivel, 
+                                                                          hop_length=tamanhoJanelaSTFT//4, fmin=frequenciaMinimaAudivel, 
                                                                           fmax=(frequenciaMaximaAudivel + 1), threshold=limiteMinimoObtencaoDadosFrequencias, 
-                                                                          win_length=tamanhoJanelaSTFT, window=tipoJanelaSTFT,  center=centralizacaoQuadro, 
+                                                                          win_length=tamanhoJanelaSTFT, window=tipoJanelaSTFT, center=centralizacaoQuadro, 
                                                                           pad_mode=modoPreenchimento, ref=amplitudeReferencia)
     
     return frequenciasInstantaneas, amplitudesFrequenciasInstantaneas
@@ -122,7 +124,7 @@ def obterFrequenciasEspecificasSelecionadasExibicaoDecibeis(listaFrequenciasUtei
                                                             listaDecibeisUteisArredondadosSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal,
                                                             listaFrequenciasComuns, menorDiferencaDecibeis):
     
-    frequenciasEspecificasSelecionadas = multiselect(label="Seleção de Frequências", options=listaFrequenciasComuns, 
+    frequenciasEspecificasSelecionadas = multiselect(label="Seleção de Frequências", options=sorted(listaFrequenciasComuns), 
                                                      default=None, key=None, help=None, on_change=None, max_selections=None, placeholder="Selecione as frequências desejadas", disabled=False, 
                                                      label_visibility="collapsed")
 
@@ -172,10 +174,10 @@ def obterFrequenciasEspecificasSelecionadasExibicaoDecibeis(listaFrequenciasUtei
 
     dataframe(dataFrameResultado, use_container_width=True , hide_index=True)
 
-def obterRmsQuadrosSerieTemporalAudio(serieTemporalAudio, tamanhoJanelaSTFT, tamanhoSaltoSTFT):
+def obterRmsQuadrosSerieTemporalAudio(serieTemporalAudio, tamanhoJanelaSTFT):
     
-    rmsQuadrosAudio = rms(y=serieTemporalAudio, S=None, frame_length=tamanhoJanelaSTFT, hop_length=tamanhoSaltoSTFT, center=centralizacaoQuadro, 
-        pad_mode=modoPreenchimento, dtype=tipoMatrizSaida)
+    rmsQuadrosAudio = rms(y=serieTemporalAudio, S=None, frame_length=tamanhoJanelaSTFT, hop_length=tamanhoJanelaSTFT//4, center=centralizacaoQuadro, 
+                          pad_mode=modoPreenchimento, dtype=tipoMatrizSaida)
     
     return rmsQuadrosAudio
 
@@ -186,58 +188,16 @@ def obterSerieTemporalTaxaAmostragemAudio(audio):
     
     return serieTemporalAudio, taxaAmostragemAudio
 
-def retirarSilenciosInicialFinalSerieTemporalAudio(serieTemporalAudio, amplitudeReferencia, tamanhoJanelaSTFT, tamanhoSaltoSTFT):
+def verificarUsoTamanhoStftEscolhido(serieTemporalAudioOriginal, serieTemporalAudioFinal, escolhaTamanhoJanelaSTFT):
     
-    serieTemporalAparadaAudio, intervaloNaoSilenciosoSerieTemporalAparadaAudio = trim(y=serieTemporalAudio, top_db=limiteAbaixoReferenciaConsideradoSilencio, 
-                                                                                       ref=amplitudeReferencia, frame_length=tamanhoJanelaSTFT, 
-                                                                                       hop_length=tamanhoSaltoSTFT, aggregate=funcaoAgregacaoCanais)
+    if((escolhaTamanhoJanelaSTFT > serieTemporalAudioOriginal.shape[0]) or (escolhaTamanhoJanelaSTFT > serieTemporalAudioFinal.shape[0])):
+        error("ERRO: O TAMANHO DA JANELA DE ANÁLISE DEVE SER MENOR QUE {}!\n".format(min([serieTemporalAudioOriginal.shape[0], serieTemporalAudioFinal.shape[0]])), icon=None)
 
-    return serieTemporalAparadaAudio, intervaloNaoSilenciosoSerieTemporalAparadaAudio
+        stop()
 
 # EXECUÇÃO PRINCIPAL
 
 if __name__ == '__main__':
-    
-    # Definição de menu lateral
-    with sidebar:
-        title("Configurações")
-
-        escolhaTempoMaximoAnaliseAudio = slider("Tempo Máximo de Análise do Áudio (Segundos):", 1, duracaoMaximaSegundosCarregamentoAudio, 1, 1)
-
-        escolhaTipoJanelaSTFT = selectbox("Tipo de Janela STFT:", ["Bartlett", "Blackman", "Bohman", "Exponencial", "Gaussiana", "Hamming", "Hann", "Kaiser", "Lanczos", "Parzen", "Retangular", "Taylor", "Triangular", "Tukey"], 6, placeholder="Escolha uma opção")
-        escolhaTamanhoJanelaSTFT = selectbox("Tamanho da Janela STFT:", [1024, 2048, 4096, 8192, 16384, 32768], 5, placeholder="Escolha uma opção")
-        escolhaPorcentagemSaltoSTFT = selectbox("Porcentagem do Salto STFT:", [0.25, 0.50, 0.75], 0, placeholder="Escolha uma opção")
-        
-        escolhaEscalaEixoFrequencias = radio("Escala do Eixo de Frequências:", ["linear", "logaritmica"], 0, horizontal=True)
-
-    dicionarioTiposJanelasSTFT = {
-        "Bartlett": "bartlett", 
-        "Blackman": "blackman", 
-        "Bohman": "bohman", 
-        "Exponencial": "exponential", 
-        "Gaussiana": "gaussian", 
-        "Hamming": "hamming", 
-        "Hann": "hann", 
-        "Kaiser": "kaiser", 
-        "Lanczos": "lanczos", 
-        "Parzen": "parzen", 
-        "Retangular": "boxcar", 
-        "Taylor": "taylor", 
-        "Triangular": "triang", 
-        "Tukey": "tukey" 
-    }
-
-    dicionarioPorcentagensSaltosSTFT = {
-        0.25: int(escolhaTamanhoJanelaSTFT * 0.25), 
-        0.50: int(escolhaTamanhoJanelaSTFT * 0.5), 
-        0.75: int(escolhaTamanhoJanelaSTFT * 0.75)
-    }
-
-    dicionarioEscalasEixos = {
-        "linear": "linear",
-        "logaritmica": "log"
-    }
-
     # Importações dos áudios original e final
     coluna1ImportacaoAudio, coluna2ImportacaoAudio = columns(spec=2, gap="large")    
     
@@ -253,74 +213,69 @@ if __name__ == '__main__':
 
     # Ações após obtenção dos áudios original e final
     if((audioOriginal is not None) and (audioFinal is not None)):
-
         # Obtenção de séries temporais e taxas de amostragens dos áudios original e final
         serieTemporalAudioOriginal, taxaAmostragemAudioOriginal = obterSerieTemporalTaxaAmostragemAudio(audioOriginal)
         serieTemporalAudioFinal, taxaAmostragemAudioFinal = obterSerieTemporalTaxaAmostragemAudio(audioFinal)
+        
+        # Obtenção do tamanho de janela STFT ideal
+        indiceTamanhoJanelaSTFT = -1
 
+        for tamanho in listaTamanhosJanelaSTFT:
+            if((serieTemporalAudioOriginal.shape[0] > tamanho) and (serieTemporalAudioFinal.shape[0] > tamanho)):
+                indiceTamanhoJanelaSTFT += 1
+
+        # Definição de menu lateral
+        with sidebar:
+            title("Configurações")
+
+            escolhaTamanhoJanelaSTFT = selectbox("Tamanho da Janela de Análise:", listaTamanhosJanelaSTFT, indiceTamanhoJanelaSTFT, placeholder="Escolha uma opção")
+            escolhaEscalaEixoFrequencias = radio("Escala do Eixo de Frequências:", ["linear", "logaritmica"], 0, horizontal=True)
+
+        dicionarioEscalasEixos = {
+            "linear": "linear",
+            "logaritmica": "log"
+        }
+        
+        # Verificação de possibilidade de uso do tamanho STFT escolhido
+        verificarUsoTamanhoStftEscolhido(serieTemporalAudioOriginal, serieTemporalAudioFinal, escolhaTamanhoJanelaSTFT)
+        
         # Obtenção de RMS (Raiz Quadrada Média) dos quadros das séries temporais dos áudios original e final
-        rmsQuadrosSerieTemporalAudioOriginal = obterRmsQuadrosSerieTemporalAudio(serieTemporalAudioOriginal, escolhaTamanhoJanelaSTFT, dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT])
-        rmsQuadrosSerieTemporalAudioFinal = obterRmsQuadrosSerieTemporalAudio(serieTemporalAudioFinal, escolhaTamanhoJanelaSTFT, dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT])
+        rmsQuadrosSerieTemporalAudioOriginal = obterRmsQuadrosSerieTemporalAudio(serieTemporalAudioOriginal, escolhaTamanhoJanelaSTFT)
+        rmsQuadrosSerieTemporalAudioFinal = obterRmsQuadrosSerieTemporalAudio(serieTemporalAudioFinal, escolhaTamanhoJanelaSTFT)
 
         # Verificação de RMS válido para os áudios original e final
-        if((rmsQuadrosSerieTemporalAudioOriginal.sum() <= 0) and (rmsQuadrosSerieTemporalAudioFinal.sum() <= 0)):
+        if((max(rmsQuadrosSerieTemporalAudioOriginal) < limiteAbaixoRmsConsideradoSilencio) and (max(rmsQuadrosSerieTemporalAudioFinal) < limiteAbaixoRmsConsideradoSilencio)):
             error("ERRO: ÁUDIOS SILENCIOSOS!\n", icon=None)
 
             stop()
 
-        elif(rmsQuadrosSerieTemporalAudioOriginal.sum() <= 0):
+        elif(max(rmsQuadrosSerieTemporalAudioOriginal) < limiteAbaixoRmsConsideradoSilencio):
             error("ERRO: ÁUDIO ORIGINAL SILENCIOSO!\n", icon=None)
 
             stop()
         
-        elif(rmsQuadrosSerieTemporalAudioFinal.sum() <= 0):
+        elif(max(rmsQuadrosSerieTemporalAudioFinal) < limiteAbaixoRmsConsideradoSilencio):
             error("ERRO: ÁUDIO FINAL SILENCIOSO!\n", icon=None)
-
-            stop()
-
-        # Retirada de silêncios iniciais e finais das séries temporais dos áudios original e final
-        # O silêncio foi associado com o RMS (Raiz Quadrada Média) mínimo dos áudios original e final
-        if((serieTemporalAudioOriginal[0] == 0) or (serieTemporalAudioOriginal[serieTemporalAudioOriginal.shape[0] - 1] == 0)): 
-            serieTemporalAudioOriginal, intervaloNaoSilenciosoSerieTemporalAudioOriginal = retirarSilenciosInicialFinalSerieTemporalAudio(serieTemporalAudioOriginal, rmsQuadrosSerieTemporalAudioOriginal.min(), escolhaTamanhoJanelaSTFT, dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT])
-        
-        if((serieTemporalAudioFinal[0] == 0) or (serieTemporalAudioFinal[serieTemporalAudioFinal.shape[0] - 1] == 0)): 
-            serieTemporalAudioFinal, intervaloNaoSilenciosoSerieTemporalAudioFinal = retirarSilenciosInicialFinalSerieTemporalAudio(serieTemporalAudioFinal, rmsQuadrosSerieTemporalAudioFinal.min(), escolhaTamanhoJanelaSTFT, dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT])
-        
-        # Verificação de duração mínima das séries temporais dos áudios original e final
-        duracaoSegundosSerieTemporalAudioOriginal = (serieTemporalAudioOriginal.shape[0] / taxaAmostragemAudioOriginal)
-        duracaoSegundosSerieTemporalAudioFinal = (serieTemporalAudioFinal.shape[0] / taxaAmostragemAudioFinal)
-
-        if(duracaoSegundosSerieTemporalAudioOriginal < duracaoMinimaSegundosSerieTemporalAudio):
-            error("ERRO: DURAÇÃO DE SÉRIE TEMPORAL ORIGINAL MENOR QUE {} SEGUNDO!\n".format(duracaoMinimaSegundosSerieTemporalAudio), icon=None)
-
-            stop()
-
-        if(duracaoSegundosSerieTemporalAudioFinal < duracaoMinimaSegundosSerieTemporalAudio):
-            error("ERRO: DURAÇÃO DE SÉRIE TEMPORAL FINAL MENOR QUE {} SEGUNDO!\n".format(duracaoMinimaSegundosSerieTemporalAudio), icon=None)
 
             stop()
 
         try:
             # Limitação de duração máxima das séries temporais dos áudios original e final
-            if(duracaoSegundosSerieTemporalAudioOriginal > escolhaTempoMaximoAnaliseAudio):
-                serieTemporalAudioOriginal = serieTemporalAudioOriginal[0:(taxaAmostragemAudioOriginal * escolhaTempoMaximoAnaliseAudio)]
+            if(serieTemporalAudioOriginal.shape[0] > escolhaTamanhoJanelaSTFT):
+                serieTemporalAudioOriginal = serieTemporalAudioOriginal[0:escolhaTamanhoJanelaSTFT]
 
-            if(duracaoSegundosSerieTemporalAudioFinal > escolhaTempoMaximoAnaliseAudio):
-                serieTemporalAudioFinal = serieTemporalAudioFinal[0:(taxaAmostragemAudioFinal * escolhaTempoMaximoAnaliseAudio)]            
+            if(serieTemporalAudioFinal.shape[0] > escolhaTamanhoJanelaSTFT):
+                serieTemporalAudioFinal = serieTemporalAudioFinal[0:escolhaTamanhoJanelaSTFT] 
 
             # Obtenção de frequências instantâneas e respectivas amplitudes das séries temporais dos áudios original e final
             frequenciasInstantaneasSerieTemporalAudioOriginal, amplitudesFrequenciasInstantaneasSerieTemporalAudioOriginal = obterFrequenciasAmplitudesSerieTemporalAudio(serieTemporalAudioOriginal,
                                                                                                                                                                         taxaAmostragemAudioOriginal,
                                                                                                                                                                         escolhaTamanhoJanelaSTFT,
-                                                                                                                                                                        dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT],
-                                                                                                                                                                        dicionarioTiposJanelasSTFT[escolhaTipoJanelaSTFT],
                                                                                                                                                                         rmsQuadrosSerieTemporalAudioOriginal.min())
             
             frequenciasInstantaneasSerieTemporalAudioFinal, amplitudesFrequenciasInstantaneasSerieTemporalAudioFinal = obterFrequenciasAmplitudesSerieTemporalAudio(serieTemporalAudioFinal,
                                                                                                                                                                     taxaAmostragemAudioFinal,
                                                                                                                                                                     escolhaTamanhoJanelaSTFT,
-                                                                                                                                                                    dicionarioPorcentagensSaltosSTFT[escolhaPorcentagemSaltoSTFT],
-                                                                                                                                                                    dicionarioTiposJanelasSTFT[escolhaTipoJanelaSTFT],
                                                                                                                                                                     rmsQuadrosSerieTemporalAudioFinal.min())
 
             # Filtragem de frequências e amplitudes úteis das séries temporais dos áudios original e final
@@ -335,16 +290,16 @@ if __name__ == '__main__':
             listaFrequenciasUteisSerieTemporalAudioFinal, listaAmplitudesUteisSerieTemporalAudioFinal = filtrarFrequenciasAmplitudesUteisSerieTemporalAudio(frequenciasInstantaneasSerieTemporalAudioFinal,
                                                                                                                                                             amplitudesFrequenciasInstantaneasSerieTemporalAudioFinal,
                                                                                                                                                             posicoesLinhasNaoNulasSerieTemporalAudioFinal,
-                                                                                                                                                            posicoesColunasNaoNulasSerieTemporalAudioFinal)
-
+                                                                                                                                                            posicoesColunasNaoNulasSerieTemporalAudioFinal)        
+            
             # Arredondamento e conversão em inteiro das frequências úteis das séries temporais dos áudios original e final
-            listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal = [int(round(frequencia, 0)) for frequencia in listaFrequenciasUteisSerieTemporalAudioOriginal]
-            listaFrequenciasUteisArredondadasSerieTemporalAudioFinal = [int(round(frequencia, 0)) for frequencia in listaFrequenciasUteisSerieTemporalAudioFinal]
-
+            listaFrequenciasUteisArredondadasSerieTemporalAudioOriginal = [int(round(frequencia, 2)) for frequencia in listaFrequenciasUteisSerieTemporalAudioOriginal]
+            listaFrequenciasUteisArredondadasSerieTemporalAudioFinal = [int(round(frequencia, 2)) for frequencia in listaFrequenciasUteisSerieTemporalAudioFinal]
+        
             # Conversão, em decibéis, de amplitudes úteis de frequências instantâneas das séries temporais dos áudios original e final
             listaDecibeisUteisSerieTemporalAudioOriginal = amplitudeToDb(S=listaAmplitudesUteisSerieTemporalAudioOriginal, ref=limiteAbaixoReferenciaConsideradoSilencio, amin=limiteMinimoObtencaoDadosFrequencias, top_db=limiteDecibeisAbaixoPico).tolist()
             listaDecibeisUteisSerieTemporalAudioFinal = amplitudeToDb(S=listaAmplitudesUteisSerieTemporalAudioFinal, ref=limiteAbaixoReferenciaConsideradoSilencio, amin=limiteMinimoObtencaoDadosFrequencias, top_db=limiteDecibeisAbaixoPico).tolist()
-
+            
             # Arredondamento e conversão em inteiro dos decibéis das frequências úteis das séries temporais dos áudios original e final
             listaDecibeisUteisArredondadosSerieTemporalAudioOriginal = [int(round(decibel, 0)) for decibel in listaDecibeisUteisSerieTemporalAudioOriginal]
             listaDecibeisUteisArredondadosSerieTemporalAudioFinal = [int(round(decibel, 0)) for decibel in listaDecibeisUteisSerieTemporalAudioFinal]
@@ -352,7 +307,7 @@ if __name__ == '__main__':
             # Obtenção do maior decibel útel entre as listas de decibéis das séries temporais dos áudios original e final
             decibelMaximoSerieTemporalOriginal = max(listaDecibeisUteisArredondadosSerieTemporalAudioOriginal)
             decibelMaximoSerieTemporalFinal = max(listaDecibeisUteisArredondadosSerieTemporalAudioFinal) 
-
+            
             decibelMaximoEixoYGrafico = (max([decibelMaximoSerieTemporalOriginal, decibelMaximoSerieTemporalFinal]) + 5)
 
             # Exibição de gráficos (sobrepostos e separados) de linhas verticais contendo frequências e decibéis úteis das séries temporais dos áudios original e final
@@ -433,6 +388,6 @@ if __name__ == '__main__':
                                                                             listaDecibeisUteisArredondadosSerieTemporalAudioOriginal, listaDecibeisUteisArredondadosSerieTemporalAudioFinal,
                                                                             listaFrequenciasComuns, menorDiferencaDecibeis if menorDiferencaDecibeis > 0 else 0)
         except:
-            error("ERRO: TENTE NOVAMENTE COM NOVOS PARÂMETROS!\n", icon=None)
+            error("ERRO: TENTE NOVAMENTE COM UM TAMANHO MENOR DE JANELA DE ANÁLISE!\n", icon=None)
 
             stop()
