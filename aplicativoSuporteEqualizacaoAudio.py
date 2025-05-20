@@ -358,7 +358,7 @@ if __name__ == '__main__':
                         if(menorDiferencaDecibeis <= 0):
                             markdown("**AJUSTE DE VOLUME:** Manter")
                         else:
-                            markdown(f"**AJUSTE DE VOLUME:** Aumentar {str(menorDiferencaDecibeis)} decibéis")
+                            markdown(f"**AJUSTE DE VOLUME:** Aumentar {str(menorDiferencaDecibeis)} dB")
 
             else:
                 menorDiferencaDecibeis = max(listaDecibeisUteisArredondadosSerieTemporalAudioFinal)
@@ -378,7 +378,7 @@ if __name__ == '__main__':
                         if(menorDiferencaDecibeis <= 0):
                             markdown("**AJUSTE DE VOLUME:** Manter")
                         else:
-                            markdown(f"**AJUSTE DE VOLUME:** Diminuir {str(menorDiferencaDecibeis)} decibéis")
+                            markdown(f"**AJUSTE DE VOLUME:** Diminuir {str(menorDiferencaDecibeis)} dB")
 
             # Obtenção de frequências específicas selecionadas para exibição de respectivos decibéis
             with container(height=None, border=False):
